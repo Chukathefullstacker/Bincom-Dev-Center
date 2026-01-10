@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGA Summed Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <div class="max-w-4xl mx-auto py-10 px-4">
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl font-bold text-gray-900 border-b-2 border-blue-500 inline-block pb-2">LGA Aggregated Results</h1>
+            <p class="text-gray-600 mt-4">Summed totals for all polling units in a Local Government Area</p>
+        </header>
+
+        <!-- LGA Selection Section -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="flex-grow">
+                    <label for="lga-id" class="block text-sm font-medium text-gray-700 mb-1">Enter Local Government ID (LGA)</label>
+                    <input type="number" id="lga-id" placeholder="Enter ID 8, 10, 13 or 19..." 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="calculateLGATotals()" 
+                            class="w-full md:w-auto px-8 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                        Generate Summed Totals
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table Section -->
+        <div id="results-container" class="hidden">
+            <div class="flex justify-between items-end mb-6 border-b pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">LGA #<span id="display-id"></span></h2>
+                    <p class="text-gray-500 text-sm">Consolidated Party Totals</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Total Cumulative Votes</p>
+                    <div id="total-badge" class="text-3xl font-black text-blue-600"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="results-grid">
+                <!-- Summed results injected here -->
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="status-message" class="text-center py-20 text-gray-400">
+            <p>Select a Local Government Area to aggregate all polling unit data.</p>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data reflecting the JOIN between PU results and Polling Unit (LGA ID)
+        const mockDatabase = [
+            { pu_id: 8, lga_id: 8, party: 'PDP', score: 14896 },
+            { pu_id: 8, lga_id: 8, party: 'DPP', score: 12102 },
+            { pu_id: 8, lga_id: 8, party: 'PPA', score: 11668 },
+            { pu_id: 9, lga_id: 13, party: 'ANPP', score: 10413 },
+            { pu_id: 9, lga_id: 8, party: 'ACN', score: 9960 },
+            { pu_id: 10, lga_id: 8, party: 'CDC', score: 9543 },
+            { pu_id: 11, lga_id: 10, party: 'LABO', score: 7600 },
+            { pu_id: 11, lga_id: 19, party: 'CPP', score: 3864 }
+        ];
+
+        function calculateLGATotals() {
+            const lgaId = document.getElementById('lga-id').value;
+            const container = document.getElementById('results-container');
+            const grid = document.getElementById('results-grid');
+            const statusMsg = document.getElementById('status-message');
+            const displayId = document.getElementById('display-id');
+            const totalBadge = document.getElementById('total-badge');
+
+            if (!lgaId) return;
+
+            // Logic: Filter by LGA, then group by party and sum scores
+            const rawLgaData = mockDatabase.filter(item => item.lga_id == lgaId);
+            
+            if (rawLgaData.length > 0) {
+                const partyTotals = rawLgaData.reduce((acc, curr) => {
+                    acc[curr.party] = (acc[curr.party] || 0) + curr.score;
+                    return acc;
+                }, {});
+
+                const aggregatedData = Object.keys(partyTotals).map(p => ({
+                    party: p,
+                    total_score: partyTotals[p]
+                }));
+
+                statusMsg.classList.add('hidden');
+                container.classList.remove('hidden');
+                displayId.textContent = lgaId;
+                
+                const grandTotal = aggregatedData.reduce((sum, r) => sum + r.total_score, 0);
+                totalBadge.textContent = grandTotal.toLocaleString();
+
+                grid.innerHTML = aggregatedData.map(r => `
+                    <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Political Party</p>
+                        <div class="flex justify-between items-baseline">
+                            <span class="text-2xl font-black text-gray-800">${r.party}</span>
+                            <span class="text-xl font-mono text-blue-600 font-bold">${r.total_score}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.classList.add('hidden');
+                statusMsg.classList.remove('hidden');
+                statusMsg.innerHTML = `<p class="text-red-500">No data found for LGA #${lgaId}. Try ID 13 or 14.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
