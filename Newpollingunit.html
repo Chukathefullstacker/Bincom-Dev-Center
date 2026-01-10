@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter New Polling Unit Results</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+    <div class="max-w-4xl mx-auto py-10 px-4">
+        <header class="mb-10">
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Record New Polling Unit</h1>
+            <p class="text-gray-600">Complete the form below to register a new PU and its announced results.</p>
+        </header>
+
+        <form id="pu-form" onsubmit="handleFormSubmit(event)" class="space-y-8">
+            <!-- Section 1: Polling Unit Metadata (Based on polling_unit table) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-2 flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+                    Polling Unit Details
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Polling Unit ID</label>
+                        <input type="number" id="pu-id" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Ward ID</label>
+                        <input type="number" id="ward-id" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">LGA ID</label>
+                        <input type="number" id="lga-id" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">PU Number</label>
+                        <input type="text" id="pu-number" placeholder="e.g. DT1208001" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">PU Name</label>
+                        <input type="text" id="pu-name" placeholder="e.g. Town Hall Premise" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-sm font-medium text-gray-700">PU Description</label>
+                        <textarea id="pu-desc" rows="2" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Latitude</label>
+                        <input type="text" id="lat" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Longitude</label>
+                        <input type="text" id="long" class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Entered By</label>
+                        <input type="text" id="entered-by" required class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Party Results (Based on announced_pu_results table) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-6 border-b pb-2 flex items-center gap-2">
+                    <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+                    Announced Results (Party Scores)
+                </h2>
+                <div id="party-inputs-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Party inputs generated via JS -->
+                </div>
+            </div>
+
+            <div class="flex justify-end items-center gap-6">
+                <button type="reset" class="text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors">Reset Form</button>
+                <button type="submit" class="px-10 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all active:scale-95">
+                    Save Polling Unit & Results
+                </button>
+            </div>
+        </form>
+
+        <div id="success-msg" class="hidden mt-8 p-6 bg-green-50 border border-green-200 rounded-xl flex items-center gap-4">
+            <div class="bg-green-500 text-white p-2 rounded-full">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <div>
+                <p class="font-bold text-green-900">Success!</p>
+                <p class="text-green-700 text-sm">Data has been formatted for the `polling_unit` and `announced_pu_results` tables.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const parties = ['PDP', 'DPP', 'ACN', 'PPA', 'CDC', 'JP', 'ANPP', 'LABOUR', 'CPP'];
+
+        window.onload = () => {
+            const container = document.getElementById('party-inputs-container');
+            container.innerHTML = parties.map(party => `
+                <div class="p-3 border border-gray-100 rounded-lg bg-gray-50 flex flex-col">
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-1">${party}</label>
+                    <input type="number" name="party_${party}" value="0" min="0" 
+                           class="party-score-input px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none font-mono text-lg">
+                </div>
+            `).join('');
+        };
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            // Extracting PU Metadata
+            const puData = {
+                polling_unit_id: document.getElementById('pu-id').value,
+                ward_id: document.getElementById('ward-id').value,
+                lga_id: document.getElementById('lga-id').value,
+                polling_unit_number: document.getElementById('pu-number').value,
+                polling_unit_name: document.getElementById('pu-name').value,
+                polling_unit_description: document.getElementById('pu-desc').value,
+                lat: document.getElementById('lat').value,
+                long: document.getElementById('long').value,
+                entered_by_user: document.getElementById('entered-by').value,
+                date_entered: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                user_ip_address: '127.0.0.1'
+            };
+
+            // Extracting Results
+            const scoreInputs = document.querySelectorAll('.party-score-input');
+            const resultsData = Array.from(scoreInputs).map(input => ({
+                party_abbreviation: input.name.replace('party_', ''),
+                party_score: parseInt(input.value) || 0,
+                entered_by_user: puData.entered_by_user,
+                date_entered: puData.date_entered,
+                user_ip_address: puData.user_ip_address
+            }));
+
+            // Final object ready for backend processing
+            const finalSubmission = {
+                polling_unit_entry: puData,
+                party_results: resultsData
+            };
+
+            console.log("Structured for SQL Insertion:", finalSubmission);
+
+            // Display feedback
+            document.getElementById('pu-form').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('success-msg').classList.remove('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
